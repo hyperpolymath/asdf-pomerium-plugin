@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/utils.bash"
+check_dependencies
+[[ -z "${ASDF_INSTALL_VERSION:-}" ]] && fail "VERSION required"
+[[ -z "${ASDF_INSTALL_PATH:-}" ]] && fail "PATH required"
+dp="${ASDF_DOWNLOAD_PATH:-${ASDF_INSTALL_PATH}/tmp}"
+if [[ ! -f "${dp}/pomerium" ]]; then
+  mkdir -p "${dp}"
+  download_file "$(get_download_url "${ASDF_INSTALL_VERSION}")" "${dp}/pomerium.tar.gz"
+  tar -xzf "${dp}/pomerium.tar.gz" -C "${dp}"
+  rm "${dp}/pomerium.tar.gz"
+  chmod +x "${dp}/pomerium"
+fi
+mkdir -p "${ASDF_INSTALL_PATH}/bin"
+cp "${dp}/pomerium" "${ASDF_INSTALL_PATH}/bin/"
+chmod +x "${ASDF_INSTALL_PATH}/bin/pomerium"
+[[ -d "${ASDF_INSTALL_PATH}/tmp" ]] && rm -rf "${ASDF_INSTALL_PATH}/tmp"
+log_info "pomerium ${ASDF_INSTALL_VERSION} installed"
